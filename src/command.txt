@@ -1,0 +1,9 @@
+ls|-a
+pwd
+ls
+sh|-c|echo $PATH
+/bin/ping|-c 4|127.0.0.1
+sudo
+top
+man| man
+
