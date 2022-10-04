@@ -1,9 +1,11 @@
 extern crate daemonize;
+extern crate reqwest;
+
 
 use serde::{Deserialize, Serialize};
 use std::net::{TcpListener, TcpStream};
 use std::process::{Command, ExitStatus};
-use std::fs::File;
+
 use std::io::{self, BufRead, Read};
 use std::path::Path;
 use std::io::Write;
@@ -13,7 +15,16 @@ use std::str;
 use std::collections::HashMap;
 use futures::executor::block_on;
 
+
+// use error_chain::error_chain;
+use std::io::copy;
+use std::fs::File;
+use tempfile::Builder;
+
+
+
 use std::convert::Infallible;
+
 use async_std;
 //use futures::executor::ThreadPool;
 use tokio::runtime::Handle;
@@ -23,19 +34,16 @@ use rocket::serde::de::Error;
 // use error_chain::error_chain;
 use self_update::cargo_crate_version;
 use async_runtime::*;
-
-// use pear::result::AsResult;
-
-// error_chain! {
-//      foreign_links {
-//          HttpRequest(reqwest::Error);
-//          IoError(::std::io::Error);
-//      }
-//  }
-// #[tokio::main]
+use async_std::io::Cursor;
 
 
+use std::io::prelude::*;
+use crate::async_std::path::PathBuf;
+use std::process;
+use std::thread::sleep;
 
+
+static REPO_PATH : &str = "https://github.com/ProgramBoon/self_update";
 
 #[derive(Serialize, Deserialize, Debug)]
 struct JSONResponse {
@@ -56,9 +64,10 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let listener = TcpListener::bind("127.0.0.1:12345")?;
-    update();
+    update().await?;
+
     // for stream in listener.incoming() {
-    //     handle_client(stream?);
+    //      handle_client(stream?);
 
 
         // let uri = "http://localhost:8080/post/";
@@ -68,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         //     .body(http_types::Body::from_json(&data)?)
         //     .await?;
         // assert_eq!(res.status(), http_types::StatusCode::Ok);
-
+        //
         // println!("{}",global_data);
     // }
     Ok(())
@@ -144,20 +153,105 @@ async fn call(data: String,status: std::option::Option<i32>) -> Result<(), Box<d
 }
 
 
-
 // АПДЕЙТ НЕ ЗАПУСКАТЬ НЕ ГОТОВО
 
-fn update() -> Result<(), Box<dyn(::std::error::Error)>> {
-    let status = self_update::backends::github::Update::configure()
-        .repo_owner("ProgramBoon")
-        .repo_name("self_update")
-        .bin_name("github")
-        .show_download_progress(true)
-        .current_version(cargo_crate_version!())
-        .build()?
-        .update()?;
-    println!("Update status: `{}`!", status.version());
+async fn update() -> Result<(), Box<dyn std::error::Error>>  {
+    //скачиваем зип
+    let target = "https://github.com/ProgramBoon/self_update/archive/refs/heads/main.zip";
+    let response = reqwest::get(target).await?;
+    // дописать СОЗДАТЬ ЕСЛИ НЕ СУЩЕСТВУЕТ ПАПКА ТМП !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    let path = Path::new("./tmp/download.zip");
+
+    let mut file = match File::create(&path) {
+        Err(why) => panic!("couldn't create {}", why),
+        Ok(file) => file,
+    };
+    let content =  response.bytes().await?;
+    file.write_all(&*content)?;
+    //unwrap zip
+
+    unwrap("./tmp/download.zip");
+    create_upd_file();
+
+    Command::new("sh")
+        .arg("nohup.sh")
+        .spawn()
+        .expect("sh command failed to start");
+
+    println!("lksdjflkj");
+
+
+    // sleep(time::Duration::from_secs(10));
+    process::exit(1);
+    println!("10928");
     Ok(())
+}
+
+
+fn create_upd_file() -> std::io::Result<()> {
+    let mut file = File::create("upd.sh")?;
+    file.write_all(b"#!/bin/bash
+sleep 10
+mv tmp/123 src/12345")?;
+    Ok(())
+}
+
+
+fn unwrap(filename:&str) -> i32 {
+    let args: Vec<_> = std::env::args().collect();
+
+    println!("Usage: {} <filename>", args[0]);
+
+    let fname = std::path::Path::new(filename);
+    let file = fs::File::open(&fname).unwrap();
+
+    let mut archive = zip::ZipArchive::new(file).unwrap();
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i).unwrap();
+        let outpath = match file.enclosed_name() {
+            Some(path) => Path::new("tmp").join(path.to_owned()),
+            None => continue,
+        };
+
+        {
+            let comment = file.comment();
+            if !comment.is_empty() {
+                println!("File {} comment: {}", i, comment);
+            }
+        }
+
+        if (*file.name()).ends_with('/') {
+            println!("File {} extracted to \"{}\"", i, outpath.display());
+            fs::create_dir_all(&outpath).unwrap();
+        } else {
+            println!(
+                "File {} extracted to \"{}\" ({} bytes)",
+                i,
+                outpath.display(),
+                file.size()
+            );
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(&p).unwrap();
+                }
+            }
+            let mut outfile = fs::File::create(&outpath).unwrap();
+            io::copy(&mut file, &mut outfile).unwrap();
+        }
+
+        // Get and Set permissions
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            if let Some(mode) = file.unix_mode() {
+                fs::set_permissions(&outpath, fs::Permissions::from_mode(mode)).unwrap();
+            }
+        }
+    }
+
+    0
 }
 
 
