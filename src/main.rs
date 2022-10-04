@@ -192,7 +192,7 @@ fn create_upd_file() -> std::io::Result<()> {
     let mut file = File::create("upd.sh")?;
     file.write_all(b"#!/bin/bash
 sleep 10
-mv tmp/self_update-main src/")?;
+mv tmp/self_update-main ./")?;
     Ok(())
 }
 
