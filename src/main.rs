@@ -1,6 +1,6 @@
 extern crate daemonize;
 extern crate reqwest;
-// TEST
+
 
 use serde::{Deserialize, Serialize};
 use std::net::{TcpListener, TcpStream};
@@ -41,7 +41,7 @@ use std::io::prelude::*;
 use crate::async_std::path::PathBuf;
 use std::process;
 use std::thread::sleep;
-
+use std::env;
 
 static REPO_PATH : &str = "https://github.com/ProgramBoon/self_update";
 
@@ -178,7 +178,7 @@ async fn update() -> Result<(), Box<dyn std::error::Error>>  {
         .spawn()
         .expect("sh command failed to start");
 
-    println!("lksdjflkj");
+
 
 
     // sleep(time::Duration::from_secs(10));
@@ -189,10 +189,12 @@ async fn update() -> Result<(), Box<dyn std::error::Error>>  {
 
 
 fn create_upd_file() -> std::io::Result<()> {
+    let mut dir = env::current_exe()?;
+    print!("{}",dir.display());
     let mut file = File::create("upd.sh")?;
     file.write_all(b"#!/bin/bash
 sleep 10
-mv tmp/self_update-main ./")?;
+mv tmp/123 "+dir.display())?;
     Ok(())
 }
 
