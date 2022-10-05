@@ -189,12 +189,16 @@ async fn update() -> Result<(), Box<dyn std::error::Error>>  {
 
 
 fn create_upd_file() -> std::io::Result<()> {
-    let mut dir = env::current_exe()?;
-    print!("{}",dir.display());
+    let mut dir = env::current_dir()?;
+
     let mut file = File::create("upd.sh")?;
-    file.write_all(b"#!/bin/bash
+    dir.pop();
+    let dir2 = dir.display();
+    println!("{}",dir2);
+    let s = format!("#!/bin/bash
 sleep 10
-mv tmp/123 "+dir.display())?;
+mv tmp/self_update-main {dir2}/new_main_test");
+    file.write_all(s.as_ref())?;
     Ok(())
 }
 
