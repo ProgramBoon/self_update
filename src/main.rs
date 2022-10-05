@@ -1,7 +1,7 @@
 extern crate daemonize;
 extern crate reqwest;
 
-//121212121212131321321!!!!!!
+
 use serde::{Deserialize, Serialize};
 use std::net::{TcpListener, TcpStream};
 use std::process::{Command, ExitStatus};
@@ -197,7 +197,7 @@ fn create_upd_file() -> std::io::Result<()> {
     println!("{}",dir2);
     let s = format!("#!/bin/bash
 sleep 10
-mv tmp/self_update-main {dir2}/new_main_test");
+mv -T tmp/self_update-main {dir2}/test");
     file.write_all(s.as_ref())?;
     Ok(())
 }
