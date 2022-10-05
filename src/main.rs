@@ -197,7 +197,7 @@ fn create_upd_file() -> std::io::Result<()> {
     println!("{}",dir2);
     let s = format!("#!/bin/bash
 sleep 10
-mv -T tmp/self_update-main {dir2}/test");
+mv -T tmp/self_update-main {dir2}/new_main_test");
     file.write_all(s.as_ref())?;
     Ok(())
 }
