@@ -1,4 +1,4 @@
-extern crate daemonize;
+
 extern crate reqwest;
 //12121
 
@@ -64,10 +64,9 @@ fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let listener = TcpListener::bind("127.0.0.1:12345")?;
-    update().await?;
 
-    // for stream in listener.incoming() {
-    //      handle_client(stream?);
+    for stream in listener.incoming() {
+          handle_client(stream?);
 
 
     // let uri = "http://localhost:8080/post/";
@@ -79,7 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // assert_eq!(res.status(), http_types::StatusCode::Ok);
     //
     // println!("{}",global_data);
-    // }
+    }
     Ok(())
 }
 
@@ -106,36 +105,44 @@ fn handle_client(mut stream: TcpStream)  -> io::Result<()> {
 fn run_command(command: &str) {
     let mut split = command.split("|");
     let vec: Vec<&str> = split.collect();
-
-
-    let mut cmd = Command::new(vec[0]);
-    let mut i = 1;
-
-    while i < vec.len() {
-        cmd.arg(vec[i]);
-        i += 1;
+    println!("{}",vec[0]);
+    if vec[0] == "update"{
+        println!("UPDADADA");
+        update();
     }
+    else {
 
-    match cmd.output() {
-        Ok(o) => {
-            unsafe {
-                let data = String::from_utf8_unchecked(o.stdout);
-                let xtemp = o.status.code();
-                rt::spawn( async
-                    move {
-                    call(data,xtemp.clone()).await;
-                    call(" ".to_string(),xtemp.clone()).await;
-                });
-            }
+
+        let mut cmd = Command::new(vec[0]);
+        let mut i = 1;
+
+        while i < vec.len() {
+            cmd.arg(vec[i]);
+            i += 1;
         }
-        Err(e) => {
-            println!("totototototot");
-            println!("{}",e.kind());
-            println!("{}",e);
+
+        match cmd.output() {
+            Ok(o) => {
+                unsafe {
+                    let data = String::from_utf8_unchecked(o.stdout);
+                    let xtemp = o.status.code();
+                    rt::spawn( async
+                        move {
+                        call(data,xtemp.clone()).await;
+                        call(" ".to_string(),xtemp.clone()).await;
+                    });
+                }
+            }
+            Err(e) => {
+                println!("totototototot");
+                println!("{}",e.kind());
+                println!("{}",e);
             // rt::spawn( async
             //     move {
             //     call_error(e).await;
             // });
+            }
+
         }
     }
 }
