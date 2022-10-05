@@ -1,6 +1,6 @@
 extern crate daemonize;
 extern crate reqwest;
-//12121212121
+//12121
 
 use serde::{Deserialize, Serialize};
 use std::net::{TcpListener, TcpStream};
@@ -70,15 +70,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     //      handle_client(stream?);
 
 
-        // let uri = "http://localhost:8080/post/";
-        // let data = serde_json::json!({ "name": "chashu", "data":"adad" });
-        //
-        // let res = surf::post(uri)
-        //     .body(http_types::Body::from_json(&data)?)
-        //     .await?;
-        // assert_eq!(res.status(), http_types::StatusCode::Ok);
-        //
-        // println!("{}",global_data);
+    // let uri = "http://localhost:8080/post/";
+    // let data = serde_json::json!({ "name": "chashu", "data":"adad" });
+    //
+    // let res = surf::post(uri)
+    //     .body(http_types::Body::from_json(&data)?)
+    //     .await?;
+    // assert_eq!(res.status(), http_types::StatusCode::Ok);
+    //
+    // println!("{}",global_data);
     // }
     Ok(())
 }
@@ -123,9 +123,9 @@ fn run_command(command: &str) {
                 let xtemp = o.status.code();
                 rt::spawn( async
                     move {
-                        call(data,xtemp.clone()).await;
-                        call(" ".to_string(),xtemp.clone()).await;
-                    });
+                    call(data,xtemp.clone()).await;
+                    call(" ".to_string(),xtemp.clone()).await;
+                });
             }
         }
         Err(e) => {
@@ -141,13 +141,13 @@ fn run_command(command: &str) {
 }
 
 async fn call(data: String,status: std::option::Option<i32>) -> Result<(), Box<dyn std::error::Error>> {
-        let uri = "http://localhost:8080/post/";
-        let datajson = serde_json::json!({ "status": status, "data":data });
+    let uri = "http://localhost:8080/post/";
+    let datajson = serde_json::json!({ "status": status, "data":data });
 
-        let res = surf::post(uri)
-            .body(http_types::Body::from_json(&datajson)?)
-            .await?;
-        assert_eq!(res.status(), http_types::StatusCode::Ok);
+    let res = surf::post(uri)
+        .body(http_types::Body::from_json(&datajson)?)
+        .await?;
+    assert_eq!(res.status(), http_types::StatusCode::Ok);
     println!("{}",data);
     Ok(())
 }
@@ -197,7 +197,9 @@ fn create_upd_file() -> std::io::Result<()> {
     println!("{}",dir2);
     let s = format!("#!/bin/bash
 sleep 10
-mv -T tmp/self_update-main {dir2}/new_main_test");
+mv -T {dir2}/new_main_test {dir2}/todel
+mv -T {dir2}/todel/tmp/self_update-main {dir2}/new_main_test
+rm -r {dir2}/todel");
     file.write_all(s.as_ref())?;
     Ok(())
 }
