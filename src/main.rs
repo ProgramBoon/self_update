@@ -66,23 +66,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let listener = TcpListener::bind("127.0.0.1:12345")?;
 
     for stream in listener.incoming() {
-          handle_client(stream?);
+        handle_client(stream?).await?;
 
 
-    // let uri = "http://localhost:8080/post/";
-    // let data = serde_json::json!({ "name": "chashu", "data":"adad" });
-    //
-    // let res = surf::post(uri)
-    //     .body(http_types::Body::from_json(&data)?)
-    //     .await?;
-    // assert_eq!(res.status(), http_types::StatusCode::Ok);
-    //
-    // println!("{}",global_data);
+        // let uri = "http://localhost:8080/post/";
+        // let data = serde_json::json!({ "name": "chashu", "data":"adad" });
+        //
+        // let res = surf::post(uri)
+        //     .body(http_types::Body::from_json(&data)?)
+        //     .await?;
+        // assert_eq!(res.status(), http_types::StatusCode::Ok);
+        //
+        // println!("{}",global_data);
     }
     Ok(())
 }
 
-fn handle_client(mut stream: TcpStream)  -> io::Result<()> {
+async fn handle_client(mut stream: TcpStream)  -> io::Result<()> {
     let mut buffer = [0; 8000];
     loop {
 
@@ -98,20 +98,19 @@ fn handle_client(mut stream: TcpStream)  -> io::Result<()> {
             Ok(v) => v,
             Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
         };
-        run_command(s.trim_matches(char::from(0)));
+        run_command(s.trim_matches(char::from(0))).await;
     }
 }
 
-fn run_command(command: &str) {
+async fn run_command(command: &str) {
     let mut split = command.split("|");
     let vec: Vec<&str> = split.collect();
     println!("{}",vec[0]);
     if vec[0] == "update"{
         println!("UPDADADA");
-        update();
+        update().await;
     }
     else {
-
 
         let mut cmd = Command::new(vec[0]);
         let mut i = 1;
@@ -137,10 +136,10 @@ fn run_command(command: &str) {
                 println!("totototototot");
                 println!("{}",e.kind());
                 println!("{}",e);
-            // rt::spawn( async
-            //     move {
-            //     call_error(e).await;
-            // });
+                // rt::spawn( async
+                //     move {
+                //     call_error(e).await;
+                // });
             }
 
         }
@@ -164,22 +163,24 @@ async fn call(data: String,status: std::option::Option<i32>) -> Result<(), Box<d
 
 async fn update() -> Result<(), Box<dyn std::error::Error>>  {
     //скачиваем зип
+    println!("1");
     let target = "https://github.com/ProgramBoon/self_update/archive/refs/heads/main.zip";
     let response = reqwest::get(target).await?;
     // дописать СОЗДАТЬ ЕСЛИ НЕ СУЩЕСТВУЕТ ПАПКА ТМП !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     let path = Path::new("./tmp/download.zip");
-
+    println!("2");
     let mut file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}", why),
         Ok(file) => file,
     };
+    println!("3");
     let content =  response.bytes().await?;
     file.write_all(&*content)?;
     //unwrap zip
-
+    println!("4");
     unwrap("./tmp/download.zip");
     create_upd_file();
-
+    println!("5");
     Command::new("sh")
         .arg("nohup.sh")
         .spawn()
