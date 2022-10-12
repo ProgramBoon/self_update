@@ -3,7 +3,7 @@ use std::{env, fs, io::{prelude::*, BufReader}, io, net::{TcpListener, TcpStream
 use std::fs::File;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
-
+use async_runtime::*;
 
 
 
@@ -62,8 +62,19 @@ fn run_command(command: &str) -> String {
     if vec[0] == "update"{
         println!("UPDADADA");
         let s = String::from("update");
+
+        rt::spawn( async
+            move {
+            println!("5");
+            update().await;
+            println!("6");
+            // call(" ".to_string(),xtemp.clone()).await;
+        });
+
+
+
+
         return s;
-        // update().await;
         // } else if  vec[0] == "123"{call("okokok".to_string(),Some(14),false).await;
     } else {
         println!("comand2");
