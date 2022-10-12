@@ -45,7 +45,8 @@ fn handle_connection(mut stream: TcpStream) {
     println!("{}",q);
 
     println!("22");
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
+    let response = q;
+    //let response = q +"HTTP/1.1 200 OK\r\n\r\n"; для статусов
     stream.write_all(response.as_bytes()).unwrap();
     println!("111");
 }
