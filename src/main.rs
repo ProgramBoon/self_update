@@ -112,7 +112,9 @@ fn run_command(command: &str) -> String {
 
                 println!("{}",e.kind());
                 println!("{}",e);
-                let s = String::from("error");
+
+
+                let s = (e.to_string());
                 return s;
                 // rt::spawn( async
                 //     move {
