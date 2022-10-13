@@ -5,7 +5,7 @@ use std::path::Path;
 use std::process::{Command, ExitStatus};
 use async_runtime::*;
 
-
+// 787876876876876
 
 
 
@@ -64,13 +64,18 @@ fn run_command(command: &str) -> String {
         println!("UPDADADA");
         let s = String::from("update");
 
-        rt::spawn( async
-            move {
-            println!("5");
-            update().await;
-            println!("6");
-            // call(" ".to_string(),xtemp.clone()).await;
-        });
+
+        println!("5");
+        update();
+        println!("6");
+        // rt::spawn( async
+        //     move {
+        //     println!("5");
+        //     update().await;
+        //     println!("6");
+        //     // call(" ".to_string(),xtemp.clone()).await;
+        // });
+
 
 
 
@@ -126,24 +131,31 @@ fn run_command(command: &str) -> String {
 }
 
 // АПДЕЙТ
-async fn update() -> Result<(), Box<dyn std::error::Error>>  {
-    //скачиваем зип
-    let target = "https://github.com/ProgramBoon/self_update/archive/refs/heads/main.zip";
-    let response = reqwest::get(target).await?;
+async fn update1(){
+    println!("!!!!!!!!!!!!!!!");
+}
 
+
+fn update() -> Result<(), Box<dyn std::error::Error>>  {
+    //скачиваем зип
+    println!("U1");
+    let target = "https://github.com/ProgramBoon/self_update/archive/refs/heads/main.zip";
+    let response = reqwest::blocking::get(target)?.bytes()?;
+    println!("U2");
     fs::create_dir_all("./tmp")?;
 
     let path = Path::new("./tmp/download.zip");
-
+    println!("U3");
     let mut file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}", why),
         Ok(file) => file,
     };
 
-    let content =  response.bytes().await?;
-    file.write_all(&*content)?;
-    //unwrap zip
+    // let content =  response;
 
+    file.write_all(&*response)?;
+    //unwrap zip
+    println!("U4");
     unwrap("./tmp/download.zip");
     create_upd_file();
 
@@ -153,7 +165,9 @@ async fn update() -> Result<(), Box<dyn std::error::Error>>  {
         .expect("sh command failed to start");
 
     // sleep(time::Duration::from_secs(10));
+    println!("U5");
     process::exit(1);
+
     println!("10928");
     Ok(())
 }
