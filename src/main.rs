@@ -175,15 +175,18 @@ fn update() -> Result<(), Box<dyn std::error::Error>>  {
 
 fn create_upd_file() -> std::io::Result<()> {
     let mut dir = env::current_dir()?;
-
+    let mut CurentDir =  env::current_dir()?;
     let mut file = File::create("upd.sh")?;
     dir.pop();
     let dir2 = dir.display();
+    let CurDir2 = CurentDir.display();
     println!("{}",dir2);
+    println!("{}",CurDir2);
+
     let s = format!("#!/bin/bash
 sleep 10
-mv -T {dir2}/new_main_test {dir2}/todel
-mv -T {dir2}/todel/tmp/self_update-main {dir2}/new_main_test
+mv -T {CurDir2} {dir2}/todel
+mv -T {dir2}/todel/tmp/self_update-main {CurDir2}
 rm -r {dir2}/todel");
     file.write_all(s.as_ref())?;
     Ok(())
